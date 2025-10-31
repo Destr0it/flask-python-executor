@@ -20,6 +20,20 @@ ALLOWED_BUILTINS = {
 def run_code():
     data = request.get_json()
     code = data.get("code", "")
+    inputs = data.get("inputs", [])  # Нове поле для input()
+    
+    input_iter = iter(inputs)
+    
+    # Псевдо input
+    def fake_input(prompt=""):
+        try:
+            return next(input_iter)
+        except StopIteration:
+            raise Exception("Більше немає вхідних даних для input()")
+    
+    # Додаємо fake_input до дозволених функцій
+    safe_builtins = ALLOWED_BUILTINS.copy()
+    safe_builtins["input"] = fake_input
 
     safe_locals = {}
     output_buffer = io.StringIO()
@@ -27,7 +41,7 @@ def run_code():
     try:
         # Перехоплюємо вивід print
         with contextlib.redirect_stdout(output_buffer):
-            exec(code, {"__builtins__": ALLOWED_BUILTINS}, safe_locals)
+            exec(code, {"__builtins__": safe_builtins}, safe_locals)
 
         result = output_buffer.getvalue()
         if result.strip() == "":
