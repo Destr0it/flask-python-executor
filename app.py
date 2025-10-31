@@ -29,7 +29,7 @@ def run_code():
         try:
             return next(input_iter)
         except StopIteration:
-            raise Exception("Більше немає вхідних даних для input()")
+            raise Exception("No data in the input() window")
     
     # Додаємо fake_input до дозволених функцій
     safe_builtins = ALLOWED_BUILTINS.copy()
@@ -45,7 +45,7 @@ def run_code():
 
         result = output_buffer.getvalue()
         if result.strip() == "":
-            result = "✅ Код виконано без помилок"
+            result = "The code was execuded without errors!"
 
         return jsonify({"output": result})
 
@@ -55,7 +55,7 @@ def run_code():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "Flask Python Executor — працює! 🚀"
+    return "Flask Python Executor — is work! 🚀"
 
 @app.route("/status", methods=["GET"])
 def status():
