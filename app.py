@@ -5,22 +5,29 @@ import traceback
 
 app = Flask(__name__)
 
+# Дозволені функції для "пісочниці"
+ALLOWED_BUILTINS = {
+    "print": print,
+    "range": range,
+    "len": len,
+    "int": int,
+    "float": float,
+    "str": str,
+    "bool": bool,
+}
+
 @app.route("/run", methods=["POST"])
 def run_code():
     data = request.get_json()
-
-    # Отримуємо код від гравця
     code = data.get("code", "")
 
-    # Підготуємо "пісочницю" — окремий простір для виконання
     safe_locals = {}
-
-    # Перехоплюємо весь текстовий вивід
     output_buffer = io.StringIO()
 
     try:
+        # Перехоплюємо вивід print
         with contextlib.redirect_stdout(output_buffer):
-            exec(code, {"__builtins__": {}}, safe_locals)
+            exec(code, {"__builtins__": ALLOWED_BUILTINS}, safe_locals)
 
         result = output_buffer.getvalue()
         if result.strip() == "":
@@ -32,11 +39,13 @@ def run_code():
         error_text = traceback.format_exc()
         return jsonify({"error": error_text}), 400
 
-
 @app.route("/", methods=["GET"])
 def index():
     return "Flask Python Executor — працює! 🚀"
 
+@app.route("/status", methods=["GET"])
+def status():
+    return "Server is running ✅"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
